@@ -1,15 +1,18 @@
 import classNames from 'classnames';
 import { Person } from '../types';
-import { PersonLink } from './PersonLink';
-import { useParams } from 'react-router-dom';
+import PersonLink from './PersonLink';
 
-interface Props {
+type Props = {
   people: Person[];
-}
+  selectedPerson: string;
+  onSelect: (name: string) => void;
+};
 
-export const PeopleTable: React.FC<Props> = ({ people }) => {
-  const { slug } = useParams();
-
+export default function PeopleTable({
+  people,
+  selectedPerson,
+  onSelect,
+}: Props) {
   return (
     <table
       data-cy="peopleTable"
@@ -27,47 +30,41 @@ export const PeopleTable: React.FC<Props> = ({ people }) => {
       </thead>
 
       <tbody>
-        {people.map(person => {
-          const mother = people.find(p => p.name === person.motherName) || null;
-          const father = people.find(p => p.name === person.fatherName) || null;
-
-          return (
-            <tr
-              data-cy="person"
-              key={person.slug}
-              className={classNames({
-                'has-background-warning': person.slug === slug,
-              })}
-            >
-              <td>
-                <PersonLink person={person} />
-              </td>
-
-              <td>{person.sex}</td>
-              <td>{person.born}</td>
-              <td>{person.died}</td>
-              <td>
-                {mother ? (
-                  <PersonLink person={mother} />
-                ) : person.motherName ? (
-                  <span className="has-text-danger">{person.motherName}</span>
-                ) : (
-                  '-'
-                )}
-              </td>
-              <td>
-                {father ? (
-                  <PersonLink person={father} />
-                ) : person.fatherName ? (
-                  <span>{person.fatherName}</span>
-                ) : (
-                  '-'
-                )}
-              </td>
-            </tr>
-          );
-        })}
+        {people.map(person => (
+          <tr
+            key={person.name}
+            data-cy="person"
+            className={classNames({
+              'has-background-warning': person.name === selectedPerson,
+            })}
+          >
+            <td>
+              <PersonLink
+                name={person.name}
+                people={people}
+                onSelect={onSelect}
+              />
+            </td>
+            <td>{person.sex}</td>
+            <td>{person.born}</td>
+            <td>{person.died}</td>
+            <td>
+              <PersonLink
+                name={person.motherName}
+                people={people}
+                onSelect={onSelect}
+              />
+            </td>
+            <td>
+              <PersonLink
+                name={person.fatherName}
+                people={people}
+                onSelect={onSelect}
+              />
+            </td>
+          </tr>
+        ))}
       </tbody>
     </table>
   );
-};
+}

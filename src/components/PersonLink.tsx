@@ -1,20 +1,30 @@
-import classNames from 'classnames';
 import { Person } from '../types';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
-interface Props {
-  person: Person;
-}
-
-export const PersonLink: React.FC<Props> = ({ person }) => {
-  return (
-    <Link
-      to={`/people/${person.slug}`}
-      className={classNames({
-        'has-text-danger': person.sex === 'f',
-      })}
-    >
-      {person.name}
-    </Link>
-  );
+type Props = {
+  name: string | null;
+  people: Person[];
+  onSelect: (name: string) => void;
 };
+
+export default function PersonLink({ name, people, onSelect }: Props) {
+  if (!name) {
+    return <>-</>;
+  }
+
+  const person = people.find(p => p.name === name);
+
+  if (!person) {
+    return <>{name}</>;
+  }
+
+  return (
+    <NavLink
+      to={`/people/${person.slug}`}
+      onClick={() => onSelect(name)}
+      className={person.sex === 'f' ? 'has-text-danger' : ''}
+    >
+      {name}
+    </NavLink>
+  );
+}

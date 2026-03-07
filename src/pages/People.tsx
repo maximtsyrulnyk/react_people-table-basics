@@ -1,48 +1,62 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Loader } from '../components/Loader';
+import { Person } from '../types';
 import { getPeople } from '../api';
-import { Person } from '../types/Person';
-import { PeopleTable } from '../components/PeopleTable';
+import PeopleTable from '../components/PeopleTable';
 
-export const People = () => {
-  const [people, setPeople] = useState<Person[]>([]);
-  const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
+export default function People() {
   const { slug } = useParams();
+  const [people, setPeople] = useState<Person[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [selectedPerson, setSelectedPerson] = useState('');
 
   useEffect(() => {
-    getPeople().then(setPeople);
+    setLoading(true);
+    getPeople()
+      .then(setPeople)
+      .catch(setErrorMessage)
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    if (!slug) {
-      setSelectedPerson(null);
+    if (slug && people.length > 0) {
+      const person = people.find(p => p.slug === slug);
 
-      return;
-    }
-
-    if (people.length === 0) {
-      return;
-    }
-
-    const person = people.find(currentPerson => currentPerson.slug === slug);
-
-    if (person) {
-      setSelectedPerson(person.name);
-    } else {
-      setSelectedPerson(null);
+      if (person) {
+        setSelectedPerson(person.name);
+      }
     }
   }, [slug, people]);
 
   return (
-    <div className="section">
-      <div className="container">
-        <h1 className="title">People Page</h1>
+    <main>
+      <h1 className="title">People Page</h1>
 
-        <PeopleTable
-          people={people}
-          selectedPerson={selectedPerson}
-        />
+      <div className="block">
+        <div className="box table-container">
+          {loading && <Loader />}
+
+          {errorMessage && (
+            <p data-cy="peopleLoadingError" className="has-text-danger">
+              Something went wrong
+            </p>
+          )}
+
+          {!loading && people.length === 0 && (
+            <p data-cy="noPeopleMessage">There are no people on the server</p>
+          )}
+
+          {people.length && (
+            <PeopleTable
+              people={people}
+              selectedPerson={selectedPerson}
+              onSelect={name => setSelectedPerson(name)}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </main>
   );
-};
+}
